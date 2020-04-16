@@ -1,0 +1,6 @@
+name: 'NoNetherRoof'
+version: @version@
+main: me.thevipershow.nonetherroof.Nonetherroof
+api-version: '1.13'
+authors: [TheViperShow]
+description: "Stop players from traveling on the nether's roof!"

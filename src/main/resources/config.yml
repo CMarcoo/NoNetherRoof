@@ -1,0 +1,10 @@
+# Plugin by TheViperShow -
+# Remember to leave a review if you
+# are enjoying this plugin.
+main:
+  punish-executables: # Available placeholders:
+    # %PLAYER% - The player who went on the Nether's roof.
+    # %PREV_LOC% - His last position that wasn't on the Nether's roof.
+    # It will be replaced with a X Y Z format.
+    - 'msg %PLAYER% You are not allowed to travel up here!'
+    - 'minecraft:tp %PLAYER% %PREV_LOC%'
