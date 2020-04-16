@@ -11,6 +11,7 @@
 
 package me.thevipershow.nonetherroof;
 
+import me.thevipershow.nonetherroof.commands.NoNetherRoofCommand;
 import me.thevipershow.nonetherroof.config.Values;
 import me.thevipershow.nonetherroof.tasks.PlayerChecker;
 import org.bukkit.Bukkit;
@@ -26,6 +27,7 @@ public final class Nonetherroof extends JavaPlugin {
         configValues = new Values(getConfig());
         final PlayerChecker playerChecker = PlayerChecker.getInstance(configValues, this);
         Bukkit.getPluginManager().registerEvents(playerChecker, this);
+        Bukkit.getPluginCommand("nnr").setExecutor(NoNetherRoofCommand.getInstance(configValues, this));
     }
 
     @Override

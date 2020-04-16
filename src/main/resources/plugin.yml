@@ -4,3 +4,9 @@ main: me.thevipershow.nonetherroof.Nonetherroof
 api-version: '1.13'
 authors: [TheViperShow]
 description: "Stop players from traveling on the nether's roof!"
+commands:
+  nnr:
+    description: 'NoNetherRoof plugin main command'
+    usage: '/<command> [reload]'
+    aliases:
+      - nonetherroof

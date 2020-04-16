@@ -10,4 +10,3 @@ main:
     # %ROOF_POS% - The illegal position where the player attempted to get on.
     # Positions will be replaced with a X Y Z format.
     - "minecraft:me %PLAYER% Has tried to reach the nether's roof!"
-    - "minecraft:summon minecraft:creeper %PREV_LOC%"
