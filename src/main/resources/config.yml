@@ -2,9 +2,12 @@
 # Remember to leave a review if you
 # are enjoying this plugin.
 main:
+  cancel: true #should we stop people from going on the roof?
   punish-executables: # Available placeholders:
     # %PLAYER% - The player who went on the Nether's roof.
     # %PREV_LOC% - His last position that wasn't on the Nether's roof.
-    # It will be replaced with a X Y Z format.
-    - 'msg %PLAYER% You are not allowed to travel up here!'
-    - 'minecraft:tp %PLAYER% %PREV_LOC%'
+    # %PREV_LOC_WORLD% - The world's name of his last safe position.
+    # %ROOF_POS% - The illegal position where the player attempted to get on.
+    # Positions will be replaced with a X Y Z format.
+    - "minecraft:me %PLAYER% Has tried to reach the nether's roof!"
+    - "minecraft:summon minecraft:creeper %PREV_LOC%"

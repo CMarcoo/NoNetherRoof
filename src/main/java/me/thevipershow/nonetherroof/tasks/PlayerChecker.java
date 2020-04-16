@@ -11,90 +11,53 @@
 
 package me.thevipershow.nonetherroof.tasks;
 
-import java.util.HashMap;
-import java.util.UUID;
 import me.thevipershow.nonetherroof.config.Values;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PlayerChecker implements Listener {
-
     private static PlayerChecker instance = null;
 
-    private final HashMap<UUID, GenericPair<Location, Location>> playersLocation;
     private final Values configValues;
     private final JavaPlugin plugin;
 
-    private PlayerChecker(HashMap<UUID, GenericPair<Location, Location>> playersLocation, Values configValues, JavaPlugin plugin) {
-        this.playersLocation = playersLocation;
+    private PlayerChecker(Values configValues, JavaPlugin plugin) {
         this.configValues = configValues;
         this.plugin = plugin;
     }
 
-    public static PlayerChecker getInstance(final HashMap<UUID, GenericPair<Location, Location>> playersLocation, final Values configValues, final JavaPlugin plugin) {
-        return instance == null ? new PlayerChecker(playersLocation, configValues, plugin) : instance;
+    public static PlayerChecker getInstance(final Values configValues, final JavaPlugin plugin) {
+        if (instance == null) {
+            instance = new PlayerChecker(configValues, plugin);
+            return instance;
+        }
+        return instance;
     }
 
+    @SuppressWarnings("ConstantConditions")
     @EventHandler(ignoreCancelled = true)
-    protected void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         final Player player = event.getPlayer();
-        final UUID uuid = player.getUniqueId();
-        final Location iLo = player.getLocation();
-        playersLocation.putIfAbsent(uuid, new GenericPair<>(null, null));
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    protected void onPlayerQuit(PlayerQuitEvent event) {
-        final UUID uuid = event.getPlayer().getUniqueId();
-        playersLocation.remove(uuid);
-    }
-
-    public void updateLocations() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            playersLocation.keySet().forEach(uuid -> {
-                final Player iPlayer = Bukkit.getPlayer(uuid);
-                if (iPlayer != null) {
-                    playersLocation.get(uuid).setFirst(iPlayer.getLocation());
+        if (configValues.isCancel()) {
+            if (player.getLocation().getWorld().getEnvironment() == World.Environment.NETHER) {
+                if (event.getTo().getY() >= 128.d) {
+                    event.setCancelled(true);
+                    final double fx = event.getFrom().getX(), fy = event.getFrom().getY(), fz = event.getFrom().getZ();
+                    final double tx = event.getTo().getX(), ty = event.getTo().getY(), tz = event.getTo().getZ();
+                    configValues.getExecutableCommands().forEach(s -> {
+                        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
+                                s.replace("%PLAYER%", player.getName())
+                                        .replace("%PREV_LOC%", fx + " " + fy + " " + fz)
+                                        .replace("%PREV_LOC_WORLD%", event.getFrom().getWorld().getName())
+                                        .replace("%ROOF_POS%", tx + " " + ty + " " + tz));
+                    });
                 }
-            });
-        }, 1L, 10L);
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            playersLocation.keySet().forEach(uuid1 -> {
-                final Player iPlayer1 = Bukkit.getPlayer(uuid1);
-                if (iPlayer1 != null) {
-                    playersLocation.get(uuid1).setSecond(iPlayer1.getLocation());
-                }
-            });
-        }, 5L, 10L);
+            }
+        }
     }
-
-    public void performPunishments() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            playersLocation.keySet().forEach(uuid -> {
-                final Player iPlayer = Bukkit.getPlayer(uuid);
-                if (iPlayer != null) {
-                    final GenericPair<Location, Location> locs = playersLocation.get(uuid);
-                    final Location iLocation = locs.getSecond();
-                    final Location iLocation1 = locs.getFirst();
-                    if (iLocation.getWorld().getEnvironment() == World.Environment.NETHER
-                            && iLocation.getY() >= 128.0d) {
-                        configValues.getExecutableCommands().forEach(s -> {
-                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s
-                                    .replace("%PLAYER%", iPlayer.getName())
-                                    .replace("%PREV_LOC%", iLocation1.getBlockX() + " " + iLocation1.getBlockY() + " " + iLocation1.getBlockZ()));
-                        });
-                    }
-                }
-            });
-        }, 35L, 10L);
-    }
-
-
 }

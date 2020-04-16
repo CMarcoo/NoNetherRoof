@@ -11,28 +11,21 @@
 
 package me.thevipershow.nonetherroof;
 
-import java.util.HashMap;
-import java.util.UUID;
 import me.thevipershow.nonetherroof.config.Values;
-import me.thevipershow.nonetherroof.tasks.GenericPair;
 import me.thevipershow.nonetherroof.tasks.PlayerChecker;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Nonetherroof extends JavaPlugin {
 
     private Values configValues;
-    private final HashMap<UUID, GenericPair<Location, Location>> playersLocation = new HashMap<>();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         configValues = new Values(getConfig());
-        final PlayerChecker playerChecker = PlayerChecker.getInstance(playersLocation, configValues, this);
+        final PlayerChecker playerChecker = PlayerChecker.getInstance(configValues, this);
         Bukkit.getPluginManager().registerEvents(playerChecker, this);
-        playerChecker.updateLocations();
-        playerChecker.performPunishments();
     }
 
     @Override

@@ -17,6 +17,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 public final class Values {
 
     private List<String> executableCommands;
+    private boolean cancel;
 
     public Values(final FileConfiguration config) {
         updateValues(config);
@@ -24,13 +25,19 @@ public final class Values {
 
     public final void updateValues(final FileConfiguration config) {
         executableCommands = config.getStringList("main.punish-executables");
+        cancel = config.getBoolean("main.cancel");
     }
 
     public final void clearAll() {
         executableCommands = null;
+        cancel = false;
     }
 
     public List<String> getExecutableCommands() {
         return executableCommands;
+    }
+
+    public boolean isCancel() {
+        return cancel;
     }
 }
