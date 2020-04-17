@@ -13,13 +13,18 @@ package me.thevipershow.nonetherroof.tasks;
 
 import me.thevipershow.nonetherroof.config.Values;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+@SuppressWarnings("ConstantConditions")
 public final class PlayerChecker implements Listener {
     private static PlayerChecker instance = null;
 
@@ -39,23 +44,39 @@ public final class PlayerChecker implements Listener {
         return instance;
     }
 
-    @SuppressWarnings("ConstantConditions")
+    private <T extends PlayerEvent & Cancellable> void performCheck(T event, final Location from, final Location to) {
+        event.setCancelled(true);
+        final double fx = from.getX(), fy = from.getY(), fz = from.getZ();
+        final double tx = to.getX(), ty = to.getY(), tz = to.getZ();
+        configValues.getExecutableCommands().forEach(s -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
+                s.replace("%PLAYER%", event.getPlayer().getName())
+                        .replace("%PREV_LOC%", fx + " " + fy + " " + fz)
+                        .replace("%PREV_LOC_WORLD%", from.getWorld().getName())
+                        .replace("%ROOF_POS%", tx + " " + ty + " " + tz)));
+    }
+
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerMove(PlayerMoveEvent event) {
+    public final void onPlayerMove(PlayerMoveEvent event) {
         final Player player = event.getPlayer();
-        if (configValues.isCancel()) {
-            if (player.getLocation().getWorld().getEnvironment() == World.Environment.NETHER) {
-                if (event.getTo().getY() >= 128.d) {
-                    event.setCancelled(true);
-                    final double fx = event.getFrom().getX(), fy = event.getFrom().getY(), fz = event.getFrom().getZ();
-                    final double tx = event.getTo().getX(), ty = event.getTo().getY(), tz = event.getTo().getZ();
-                    configValues.getExecutableCommands().forEach(s -> {
-                        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
-                                s.replace("%PLAYER%", player.getName())
-                                        .replace("%PREV_LOC%", fx + " " + fy + " " + fz)
-                                        .replace("%PREV_LOC_WORLD%", event.getFrom().getWorld().getName())
-                                        .replace("%ROOF_POS%", tx + " " + ty + " " + tz));
-                    });
+        if (player.hasPermission("nonetherroof.bypass")) {
+            if (configValues.isCancel()) {
+                if (player.getLocation().getWorld().getEnvironment() == World.Environment.NETHER) {
+                    if (event.getTo().getY() >= 128.d) {
+                        performCheck(event, event.getFrom(), event.getTo());
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public final void onPlayerTeleport(PlayerTeleportEvent event) {
+        final Player player = event.getPlayer();
+        if (player.hasPermission("nonetherroof.bypass")) {
+            final Location locationTo = event.getTo();
+            if (locationTo.getWorld().getEnvironment() == World.Environment.NETHER) {
+                if (locationTo.getY() >= 128.d) {
+                    performCheck(event, event.getFrom(), locationTo);
                 }
             }
         }

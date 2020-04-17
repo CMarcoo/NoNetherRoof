@@ -53,6 +53,7 @@ public class NoNetherRoofCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender.hasPermission("nonetherroof.reload")) {
             if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+                plugin.reloadConfig();
                 config.updateValues(plugin.getConfig());
                 sender.sendMessage("> Config reloaded");
             } else {

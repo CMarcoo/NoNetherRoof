@@ -16,12 +16,21 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public final class Values {
 
-    private List<String> executableCommands;
-    private boolean cancel;
+    private static Values instance = null;
 
-    public Values(final FileConfiguration config) {
+    private Values(final FileConfiguration config) {
         updateValues(config);
     }
+
+    public static Values getInstance(final FileConfiguration configuration) {
+        if (instance == null) {
+            instance = new Values(configuration);
+        }
+        return instance;
+    }
+
+    private List<String> executableCommands;
+    private boolean cancel;
 
     public final void updateValues(final FileConfiguration config) {
         executableCommands = config.getStringList("main.punish-executables");

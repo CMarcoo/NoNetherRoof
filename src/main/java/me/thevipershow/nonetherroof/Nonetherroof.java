@@ -21,10 +21,11 @@ public final class Nonetherroof extends JavaPlugin {
 
     private Values configValues;
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        configValues = new Values(getConfig());
+        configValues = Values.getInstance(getConfig());
         final PlayerChecker playerChecker = PlayerChecker.getInstance(configValues, this);
         Bukkit.getPluginManager().registerEvents(playerChecker, this);
         Bukkit.getPluginCommand("nnr").setExecutor(NoNetherRoofCommand.getInstance(configValues, this));
