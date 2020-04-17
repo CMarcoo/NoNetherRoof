@@ -12,6 +12,7 @@
 package me.thevipershow.nonetherroof.config;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public final class Values {
@@ -33,7 +34,8 @@ public final class Values {
     private boolean cancel;
 
     public final void updateValues(final FileConfiguration config) {
-        executableCommands = config.getStringList("main.punish-executables");
+        executableCommands = config.getStringList("main.punish-executables")
+                .stream().filter(s -> s != null && !s.isEmpty()).collect(Collectors.toList());
         cancel = config.getBoolean("main.cancel");
     }
 
