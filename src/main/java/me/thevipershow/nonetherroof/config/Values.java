@@ -32,16 +32,19 @@ public final class Values {
 
     private List<String> executableCommands;
     private boolean cancel;
+    private long executablesDelay;
 
     public final void updateValues(final FileConfiguration config) {
         executableCommands = config.getStringList("main.punish-executables")
                 .stream().filter(s -> s != null && !s.isEmpty()).collect(Collectors.toList());
         cancel = config.getBoolean("main.cancel");
+        executablesDelay = config.getLong("main.executables-delay");
     }
 
     public final void clearAll() {
         executableCommands = null;
         cancel = false;
+        executablesDelay = 0L;
     }
 
     public List<String> getExecutableCommands() {
@@ -50,5 +53,9 @@ public final class Values {
 
     public boolean isCancel() {
         return cancel;
+    }
+
+    public long getExecutablesDelay() {
+        return executablesDelay;
     }
 }

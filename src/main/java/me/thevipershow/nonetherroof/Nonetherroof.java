@@ -11,6 +11,9 @@
 
 package me.thevipershow.nonetherroof;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.UUID;
 import me.thevipershow.nonetherroof.commands.NoNetherRoofCommand;
 import me.thevipershow.nonetherroof.config.Values;
 import me.thevipershow.nonetherroof.tasks.PlayerChecker;
@@ -18,15 +21,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Nonetherroof extends JavaPlugin {
-
     private Values configValues;
+    private final HashMap<UUID, LocalDateTime> lastExecuted = new HashMap<>();
 
     @SuppressWarnings("ConstantConditions")
     @Override
     public void onEnable() {
         saveDefaultConfig();
         configValues = Values.getInstance(getConfig());
-        final PlayerChecker playerChecker = PlayerChecker.getInstance(configValues, this);
+        final PlayerChecker playerChecker = PlayerChecker.getInstance(configValues, lastExecuted);
         Bukkit.getPluginManager().registerEvents(playerChecker, this);
         Bukkit.getPluginCommand("nnr").setExecutor(NoNetherRoofCommand.getInstance(configValues, this));
     }

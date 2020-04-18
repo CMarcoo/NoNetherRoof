@@ -11,6 +11,9 @@
 
 package me.thevipershow.nonetherroof.tasks;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.UUID;
 import me.thevipershow.nonetherroof.config.Values;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,26 +24,35 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 
 @SuppressWarnings("ConstantConditions")
 public final class PlayerChecker implements Listener {
     private static PlayerChecker instance = null;
 
     private final Values configValues;
-    private final JavaPlugin plugin;
+    private final HashMap<UUID, LocalDateTime> lastExecuted;
 
-    private PlayerChecker(Values configValues, JavaPlugin plugin) {
+    private PlayerChecker(Values configValues, HashMap<UUID, LocalDateTime> lastExecuted) {
         this.configValues = configValues;
-        this.plugin = plugin;
+        this.lastExecuted = lastExecuted;
     }
 
-    public static PlayerChecker getInstance(final Values configValues, final JavaPlugin plugin) {
+    public static PlayerChecker getInstance(final Values configValues, final HashMap<UUID, LocalDateTime> lastExecuted) {
         if (instance == null) {
-            instance = new PlayerChecker(configValues, plugin);
+            instance = new PlayerChecker(configValues, lastExecuted);
             return instance;
         }
         return instance;
+    }
+
+    private void executeExecutables(final Location from, final Location to, final String playerName) {
+        final double fx = from.getX(), fy = from.getY(), fz = from.getZ();
+        final double tx = to.getX(), ty = to.getY(), tz = to.getZ();
+        configValues.getExecutableCommands().forEach(s -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
+                s.replace("%PLAYER%", playerName)
+                        .replace("%PREV_LOC%", fx + " " + fy + " " + fz)
+                        .replace("%PREV_LOC_WORLD%", from.getWorld().getName())
+                        .replace("%ROOF_POS%", tx + " " + ty + " " + tz)));
     }
 
     private <T extends PlayerEvent & Cancellable> void performCheck(T event, final Location from, final Location to) {
@@ -48,13 +60,18 @@ public final class PlayerChecker implements Listener {
             if (event.getPlayer().hasPermission("nonetherroof.bypass")) {
                 if (to.getWorld().getEnvironment() == World.Environment.NETHER && to.getY() >= 128.d) {
                     event.setCancelled(true);
-                    final double fx = from.getX(), fy = from.getY(), fz = from.getZ();
-                    final double tx = to.getX(), ty = to.getY(), tz = to.getZ();
-                    configValues.getExecutableCommands().forEach(s -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
-                            s.replace("%PLAYER%", event.getPlayer().getName())
-                                    .replace("%PREV_LOC%", fx + " " + fy + " " + fz)
-                                    .replace("%PREV_LOC_WORLD%", from.getWorld().getName())
-                                    .replace("%ROOF_POS%", tx + " " + ty + " " + tz)));
+                    final UUID targetUUID = event.getPlayer().getUniqueId();
+                    final String playerName = event.getPlayer().getName();
+                    final LocalDateTime currentTime = LocalDateTime.now();
+                    if (configValues.getExecutablesDelay() == -1L) {
+                        executeExecutables(from, to, playerName);
+                    } else if (!lastExecuted.containsKey(targetUUID)) {
+                        executeExecutables(from, to, playerName);
+                        lastExecuted.put(targetUUID, currentTime);
+                    } else if (Math.abs(currentTime.getSecond() - lastExecuted.get(targetUUID).getSecond()) >= configValues.getExecutablesDelay()) {
+                        executeExecutables(from, to, playerName);
+                        lastExecuted.put(targetUUID, currentTime);
+                    }
                 }
             }
         }
