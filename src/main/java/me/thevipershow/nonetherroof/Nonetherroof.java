@@ -37,5 +37,6 @@ public final class Nonetherroof extends JavaPlugin {
     @Override
     public void onDisable() {
         configValues.clearAll();
+        lastExecuted.clear();
     }
 }
